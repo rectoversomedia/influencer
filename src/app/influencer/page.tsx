@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Megaphone, FileText, TrendUp, Clock, CheckCircle, ArrowRight } from '@phosphor-icons/react';
+import { Megaphone, FileText, TrendUp, Clock, CheckCircle, ArrowRight } from '@/app/icons';
 import { createClient } from '@/lib/supabase/server';
 import { StatCard } from '@/components/ui/stat-card';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -76,25 +76,25 @@ export default async function InfluencerDashboard() {
         <StatCard
           title="Active Campaigns"
           value={activeCampaigns.length}
-          icon={<Megaphone className="h-7 w-7" weight="duotone" />}
+          icon={<Megaphone className="h-7 w-7" />}
           gradient="indigo"
         />
         <StatCard
           title="Pending Reports"
           value={pendingReports.length}
-          icon={<Clock className="h-7 w-7" weight="duotone" />}
+          icon={<Clock className="h-7 w-7" />}
           gradient="amber"
         />
         <StatCard
           title="Approved Reports"
           value={approvedReports.length}
-          icon={<CheckCircle className="h-7 w-7" weight="duotone" />}
+          icon={<CheckCircle className="h-7 w-7" />}
           gradient="emerald"
         />
         <StatCard
           title="Draft Reports"
           value={draftReports.length}
-          icon={<FileText className="h-7 w-7" weight="duotone" />}
+          icon={<FileText className="h-7 w-7" />}
           gradient="violet"
         />
       </div>
@@ -104,19 +104,19 @@ export default async function InfluencerDashboard() {
         <StatCard
           title="Your Impressions"
           value={totalImpressions}
-          icon={<TrendUp className="h-7 w-7" weight="duotone" />}
+          icon={<TrendUp className="h-7 w-7" />}
           gradient="pink"
         />
         <StatCard
           title="Your Reach"
           value={totalReach}
-          icon={<TrendUp className="h-7 w-7" weight="duotone" />}
+          icon={<TrendUp className="h-7 w-7" />}
           gradient="cyan"
         />
         <StatCard
           title="Your Engagement"
           value={totalEngagement}
-          icon={<FileText className="h-7 w-7" weight="duotone" />}
+          icon={<FileText className="h-7 w-7" />}
           gradient="rose"
         />
       </div>

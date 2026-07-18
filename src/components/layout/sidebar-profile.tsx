@@ -1,6 +1,6 @@
 'use client';
 
-import { SignOut } from '@phosphor-icons/react';
+import { SignOut } from '../../app/icons';
 
 interface SidebarProfileProps {
   userName: string;
@@ -32,7 +32,7 @@ export function SidebarProfile({ userName, userEmail, isCollapsed }: SidebarProf
             ${isCollapsed ? 'px-2' : ''}
           `}
         >
-          <SignOut className="h-4 w-4" weight="bold" />
+          <SignOut className="h-4 w-4" />
           {!isCollapsed && 'Sign Out'}
         </button>
       </form>

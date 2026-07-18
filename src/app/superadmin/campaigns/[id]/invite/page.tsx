@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Envelope, Copy, Check, Spinner } from '@phosphor-icons/react';
+import { ArrowLeft, Envelope, Copy, Check, Spinner, SpinnerGap } from '@/app/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -67,7 +67,7 @@ export default function InvitePage({ params }: { params: Promise<{ id: string }>
   if (!campaignId) {
     return (
       <div className="flex items-center justify-center h-64">
-        <Spinner className="h-8 w-8 animate-spin text-indigo-600" />
+        <SpinnerGap className="h-8 w-8 animate-spin text-indigo-600" />
       </div>
     );
   }
@@ -116,12 +116,12 @@ export default function InvitePage({ params }: { params: Promise<{ id: string }>
             <Button type="submit" disabled={isLoading || !email}>
               {isLoading ? (
                 <>
-                  <Spinner className="h-5 w-5 animate-spin" />
+                  <SpinnerGap className="h-5 w-5 animate-spin" />
                   Sending...
                 </>
               ) : (
                 <>
-                  <Envelope className="h-5 w-5" weight="bold" />
+                  <Envelope className="h-5 w-5" />
                   Send Invite
                 </>
               )}

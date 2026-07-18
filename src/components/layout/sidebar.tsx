@@ -16,7 +16,7 @@ import {
   X,
   CaretRight,
   House,
-} from '@phosphor-icons/react';
+} from '../../app/icons';
 import { SidebarProfile } from './sidebar-profile';
 
 interface SidebarProps {
@@ -118,7 +118,7 @@ export function Sidebar({ role, userName, userEmail }: SidebarProps) {
         onClick={() => setMobileOpen(true)}
         className="lg:hidden fixed top-4 left-4 z-[60] p-3 bg-gradient-to-r from-indigo-600 to-violet-600 text-white rounded-xl shadow-lg shadow-indigo-500/30 hover:shadow-xl hover:shadow-indigo-500/40 transition-all duration-200"
       >
-        <List className="h-6 w-6" weight="bold" />
+        <List className="h-6 w-6" />
       </button>
 
       {/* Mobile overlay */}
@@ -144,7 +144,7 @@ export function Sidebar({ role, userName, userEmail }: SidebarProps) {
           {!isCollapsed && (
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                <ChartLineUp className="h-5 w-5 text-white" weight="bold" />
+                <ChartLineUp className="h-5 w-5 text-white" />
               </div>
               <div>
                 <h1 className="text-lg font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
@@ -160,13 +160,13 @@ export function Sidebar({ role, userName, userEmail }: SidebarProps) {
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="hidden lg:flex p-2 hover:bg-slate-100 rounded-lg transition-colors"
           >
-            <CaretRight className={`h-5 w-5 text-slate-400 transition-transform duration-300 ${!isCollapsed ? 'rotate-180' : ''}`} weight="bold" />
+            <CaretRight className={`h-5 w-5 text-slate-400 transition-transform duration-300 ${!isCollapsed ? 'rotate-180' : ''}`} />
           </button>
           <button
             onClick={() => setMobileOpen(false)}
             className="lg:hidden p-2 hover:bg-slate-100 rounded-lg"
           >
-            <X className="h-5 w-5 text-slate-500" weight="bold" />
+            <X className="h-5 w-5 text-slate-500" />
           </button>
         </div>
 
@@ -191,7 +191,6 @@ export function Sidebar({ role, userName, userEmail }: SidebarProps) {
               >
                 <Icon
                   className={`h-5 w-5 transition-transform duration-200 ${isActive ? '' : 'group-hover:scale-110'}`}
-                  weight={isActive ? 'fill' : 'regular'}
                 />
                 {!isCollapsed && (
                   <span className="font-medium">{link.title}</span>

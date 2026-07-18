@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Calendar, Target, Image, Plus, ArrowSquareOut } from '@phosphor-icons/react';
+import { ArrowLeft, Calendar, Target, Image, Plus, ArrowSquareOut } from '@/app/icons';
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -89,7 +89,7 @@ export default async function InfluencerCampaignDetailPage({
         {!hasSubmittedReport && (
           <Link href={`/influencer/reports/new?campaignId=${id}`}>
             <Button>
-              <Plus className="h-5 w-5" weight="bold" />
+              <Plus className="h-5 w-5" />
               Submit Report
             </Button>
           </Link>
@@ -181,7 +181,7 @@ export default async function InfluencerCampaignDetailPage({
               {!hasSubmittedReport && (
                 <Link href={`/influencer/reports/new?campaignId=${id}`}>
                   <Button>
-                    <Plus className="h-5 w-5" weight="bold" />
+                    <Plus className="h-5 w-5" />
                     Submit Your First Report
                   </Button>
                 </Link>

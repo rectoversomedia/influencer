@@ -20,7 +20,7 @@ import {
   YoutubeLogo,
   TwitterLogo,
   FacebookLogo,
-} from '@phosphor-icons/react';
+} from '@/app/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -348,7 +348,7 @@ export default function NewReportForm({ campaignId, campaign }: ReportFormProps)
                         }
                       `}
                     >
-                      <platform.icon className="h-5 w-5" weight="bold" />
+                      <platform.icon className="h-5 w-5" />
                       <span className="font-medium text-sm">{platform.label}</span>
                     </button>
                   ))}

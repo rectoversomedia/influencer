@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChartLineUp, User, Envelope, Lock, Eye, EyeSlash, Spinner, Phone } from '@phosphor-icons/react';
+import { ChartLineUp, User, Envelope, Lock, Eye, EyeSlash, SpinnerGap } from '@/app/icons';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -54,7 +54,7 @@ export default function RegisterPage() {
           {/* Logo */}
           <div className="flex items-center gap-3 mb-10">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
-              <ChartLineUp className="h-6 w-6 text-white" weight="bold" />
+              <ChartLineUp className="h-6 w-6 text-white" />
             </div>
             <div>
               <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-600 to-violet-600 bg-clip-text text-transparent">
@@ -137,7 +137,7 @@ export default function RegisterPage() {
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
-                  <Spinner className="h-5 w-5 animate-spin" />
+                  <SpinnerGap className="h-5 w-5 animate-spin" />
                   Creating account...
                 </span>
               ) : (
@@ -170,7 +170,7 @@ export default function RegisterPage() {
 
         <div className="relative text-center text-white max-w-md">
           <div className="w-24 h-24 mx-auto mb-8 rounded-3xl bg-white/10 backdrop-blur-xl flex items-center justify-center border border-white/20">
-            <User className="h-12 w-12" weight="bold" />
+            <User className="h-12 w-12" />
           </div>
 
           <h3 className="text-3xl font-bold mb-4">

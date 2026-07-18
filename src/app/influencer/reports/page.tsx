@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { FileText, Clock, CheckCircle, ArrowRight, PencilSimple } from '@phosphor-icons/react';
+import { FileText, Clock, CheckCircle, ArrowRight, PencilSimple } from '@/app/icons';
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/badge';

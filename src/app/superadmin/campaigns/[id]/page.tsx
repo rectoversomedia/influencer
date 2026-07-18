@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Megaphone, Calendar, CurrencyDollar, Users, FileText, Plus, ArrowLeft, Envelope, Share, TrendUp } from '@phosphor-icons/react';
+import { Megaphone, Calendar, CurrencyDollar, Users, FileText, Plus, ArrowLeft, Envelope, Share, TrendUp } from '@/app/icons';
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { StatusBadge, CampaignStatusBadge, PlatformBadge } from '@/components/ui/badge';
@@ -82,7 +82,7 @@ export default async function CampaignDetailPage({ params }: { params: Promise<{
         <div className="flex items-center gap-3">
           <Link href={`/superadmin/campaigns/${id}/invite`}>
             <Button>
-              <Envelope className="h-5 w-5" weight="bold" />
+              <Envelope className="h-5 w-5" />
               Invite Influencers
             </Button>
           </Link>

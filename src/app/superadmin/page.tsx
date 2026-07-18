@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Megaphone, Users, FileText, TrendUp, ArrowRight, Plus } from '@phosphor-icons/react';
+import { Megaphone, Users, FileText, TrendUp, ArrowRight, Plus } from '@/app/icons';
 import { createClient } from '@/lib/supabase/server';
 import { StatCard } from '@/components/ui/stat-card';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -76,7 +76,7 @@ export default async function SuperadminDashboard() {
           href="/superadmin/campaigns/new"
           className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-violet-600 rounded-xl hover:shadow-lg hover:shadow-indigo-500/30 transition-all duration-200 hover:-translate-y-0.5"
         >
-          <Plus className="h-5 w-5" weight="bold" />
+          <Plus className="h-5 w-5" />
           New Campaign
         </Link>
       </div>
@@ -86,25 +86,25 @@ export default async function SuperadminDashboard() {
         <StatCard
           title="Total Campaigns"
           value={stats.totalCampaigns}
-          icon={<Megaphone className="h-7 w-7" weight="duotone" />}
+          icon={<Megaphone className="h-7 w-7" />}
           gradient="indigo"
         />
         <StatCard
           title="Active Campaigns"
           value={stats.activeCampaigns}
-          icon={<TrendUp className="h-7 w-7" weight="duotone" />}
+          icon={<TrendUp className="h-7 w-7" />}
           gradient="emerald"
         />
         <StatCard
           title="Pending Reports"
           value={stats.pendingReports}
-          icon={<FileText className="h-7 w-7" weight="duotone" />}
+          icon={<FileText className="h-7 w-7" />}
           gradient="amber"
         />
         <StatCard
           title="Total Users"
           value={stats.totalUsers}
-          icon={<Users className="h-7 w-7" weight="duotone" />}
+          icon={<Users className="h-7 w-7" />}
           gradient="violet"
         />
       </div>
@@ -114,19 +114,19 @@ export default async function SuperadminDashboard() {
         <StatCard
           title="Total Impressions"
           value={metrics.impressions}
-          icon={<TrendUp className="h-7 w-7" weight="duotone" />}
+          icon={<TrendUp className="h-7 w-7" />}
           gradient="pink"
         />
         <StatCard
           title="Total Reach"
           value={metrics.reach}
-          icon={<Users className="h-7 w-7" weight="duotone" />}
+          icon={<Users className="h-7 w-7" />}
           gradient="cyan"
         />
         <StatCard
           title="Total Engagement"
           value={metrics.engagement}
-          icon={<FileText className="h-7 w-7" weight="duotone" />}
+          icon={<FileText className="h-7 w-7" />}
           gradient="rose"
         />
       </div>

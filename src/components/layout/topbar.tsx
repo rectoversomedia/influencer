@@ -1,6 +1,6 @@
 'use client';
 
-import { MagnifyingGlass, Bell, X } from '@phosphor-icons/react';
+import { MagnifyingGlass, Bell, X } from '../../app/icons';
 import Link from 'next/link';
 
 interface TopBarProps {
@@ -37,7 +37,7 @@ export function TopBar({ title }: TopBarProps) {
 
         {/* Notifications */}
         <button className="relative p-2.5 hover:bg-slate-100 rounded-xl transition-colors group">
-          <Bell className="h-5 w-5 text-slate-500 group-hover:text-slate-700" weight="regular" />
+          <Bell className="h-5 w-5 text-slate-500 group-hover:text-slate-700" />
           <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full animate-pulse" />
         </button>
       </div>

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Megaphone, ArrowRight, Users, TrendUp } from '@phosphor-icons/react';
+import { Megaphone, ArrowRight, Users, TrendUp } from '@/app/icons';
 import { createClient } from '@/lib/supabase/server';
 import { Card, CardContent } from '@/components/ui/card';
 import { CampaignStatusBadge } from '@/components/ui/badge';
@@ -59,7 +59,7 @@ export default async function ClientCampaignsPage() {
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">
                     <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-110 transition-transform duration-300">
-                      <Megaphone className="h-7 w-7 text-white" weight="bold" />
+                      <Megaphone className="h-7 w-7 text-white" />
                     </div>
                     <CampaignStatusBadge status={campaign.status} />
                   </div>

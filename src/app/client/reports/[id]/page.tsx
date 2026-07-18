@@ -1,13 +1,7 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { ArrowLeft, Check, X, TrendUp, Eye } from '@phosphor-icons/react';
 import { createClient } from '@/lib/supabase/server';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { StatusBadge, PlatformBadge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
 import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
 
 async function getReport(id: string) {
   const supabase = await createClient();
@@ -47,115 +41,70 @@ export default async function ClientReportDetailPage({
             href="/client/reports"
             className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
           >
-            <ArrowLeft className="h-5 w-5 text-slate-500" />
+            <svg className="h-5 w-5 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
           </Link>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-3xl font-bold text-slate-900">
-                Report Review
-              </h1>
-              <StatusBadge status={report.status} />
+              <h1 className="text-3xl font-bold text-slate-900">Report Review</h1>
+              <span className={`px-3 py-1 text-xs font-semibold rounded-full ${
+                report.status === 'approved' ? 'bg-emerald-100 text-emerald-700' :
+                report.status === 'submitted' ? 'bg-indigo-100 text-indigo-700' :
+                report.status === 'revision_requested' ? 'bg-rose-100 text-rose-700' :
+                'bg-slate-100 text-slate-700'
+              }`}>
+                {report.status}
+              </span>
             </div>
             <p className="text-slate-500 mt-1">
-              {(report.campaign as { name?: string })?.name || 'Campaign'} •{' '}
-              {(report.influencer as { full_name?: string })?.full_name || 'Influencer'}
+              {report.campaign?.name || 'Campaign'} - {report.influencer?.full_name || 'Influencer'}
             </p>
           </div>
         </div>
-
-        {report.status === 'submitted' && (
-          <div className="flex items-center gap-3">
-            <form action={`/api/reports/${id}/approve`} method="POST">
-              <Button variant="outline" className="text-emerald-600 hover:text-emerald-700">
-                <X className="h-5 w-5" />
-                Request Revision
-              </Button>
-            </form>
-            <form action={`/api/reports/${id}/approve`} method="POST">
-              <Button>
-                <Check className="h-5 w-5" weight="bold" />
-                Approve
-              </Button>
-            </form>
-          </div>
-        )}
       </div>
 
       {/* Overview */}
-      <div className="grid md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-5 text-center">
-            <p className="text-3xl font-bold text-indigo-600">
-              {report.total_impressions >= 1000000
-                ? `${(report.total_impressions / 1000000).toFixed(1)}M`
-                : report.total_impressions >= 1000
-                ? `${(report.total_impressions / 1000).toFixed(1)}K`
-                : report.total_impressions}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Impressions', value: report.total_impressions, color: 'indigo' },
+          { label: 'Reach', value: report.total_reach, color: 'emerald' },
+          { label: 'Likes', value: report.total_likes, color: 'pink' },
+          { label: 'Comments', value: report.total_comments, color: 'violet' },
+        ].map((stat) => (
+          <div key={stat.label} className="bg-white rounded-xl border border-slate-200 p-5 text-center">
+            <p className="text-3xl font-bold text-slate-900">
+              {stat.value >= 1000000 ? `${(stat.value / 1000000).toFixed(1)}M` :
+               stat.value >= 1000 ? `${(stat.value / 1000).toFixed(1)}K` : stat.value}
             </p>
-            <p className="text-sm text-slate-500 mt-1">Impressions</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5 text-center">
-            <p className="text-3xl font-bold text-emerald-600">
-              {report.total_reach >= 1000000
-                ? `${(report.total_reach / 1000000).toFixed(1)}M`
-                : report.total_reach >= 1000
-                ? `${(report.total_reach / 1000).toFixed(1)}K`
-                : report.total_reach}
-            </p>
-            <p className="text-sm text-slate-500 mt-1">Reach</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5 text-center">
-            <p className="text-3xl font-bold text-pink-600">
-              {report.total_likes >= 1000000
-                ? `${(report.total_likes / 1000000).toFixed(1)}M`
-                : report.total_likes >= 1000
-                ? `${(report.total_likes / 1000).toFixed(1)}K`
-                : report.total_likes}
-            </p>
-            <p className="text-sm text-slate-500 mt-1">Likes</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-5 text-center">
-            <p className="text-3xl font-bold text-violet-600">
-              {report.total_comments >= 1000000
-                ? `${(report.total_comments / 1000000).toFixed(1)}M`
-                : report.total_comments >= 1000
-                ? `${(report.total_comments / 1000).toFixed(1)}K`
-                : report.total_comments}
-            </p>
-            <p className="text-sm text-slate-500 mt-1">Comments</p>
-          </CardContent>
-        </Card>
+            <p className="text-sm text-slate-500 mt-1">{stat.label}</p>
+          </div>
+        ))}
       </div>
 
       {/* Posts */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Submitted Posts ({report.posts?.length || 0})</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-200">
+          <h2 className="text-lg font-bold text-slate-900">Submitted Posts ({report.posts?.length || 0})</h2>
+        </div>
+        <div className="p-6 space-y-6">
           {report.posts?.map((post: any, index: number) => (
             <div key={post.id} className="p-5 bg-slate-50 rounded-xl">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <span className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
-                    {index + 1}
-                  </span>
-                  <PlatformBadge platform={post.platform} />
-                  <a
-                    href={post.post_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-indigo-600 hover:text-indigo-700"
-                  >
-                    View Post
-                  </a>
-                </div>
+              <div className="flex items-center gap-3 mb-4">
+                <span className="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold">
+                  {index + 1}
+                </span>
+                <span className="px-3 py-1 text-xs font-semibold rounded-full bg-slate-200 text-slate-700 capitalize">
+                  {post.platform}
+                </span>
+                <a
+                  href={post.post_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-indigo-600 hover:text-indigo-700"
+                >
+                  View Post
+                </a>
               </div>
 
               {post.screenshot_public_url && (
@@ -167,37 +116,10 @@ export default async function ClientReportDetailPage({
                   />
                 </div>
               )}
-
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {post.impressions > 0 && (
-                  <div className="text-center p-3 bg-white rounded-lg">
-                    <p className="text-xl font-bold text-slate-900">{post.impressions.toLocaleString()}</p>
-                    <p className="text-xs text-slate-500">Impressions</p>
-                  </div>
-                )}
-                {post.reach > 0 && (
-                  <div className="text-center p-3 bg-white rounded-lg">
-                    <p className="text-xl font-bold text-slate-900">{post.reach.toLocaleString()}</p>
-                    <p className="text-xs text-slate-500">Reach</p>
-                  </div>
-                )}
-                {post.likes > 0 && (
-                  <div className="text-center p-3 bg-white rounded-lg">
-                    <p className="text-xl font-bold text-slate-900">{post.likes.toLocaleString()}</p>
-                    <p className="text-xs text-slate-500">Likes</p>
-                  </div>
-                )}
-                {post.comments > 0 && (
-                  <div className="text-center p-3 bg-white rounded-lg">
-                    <p className="text-xl font-bold text-slate-900">{post.comments.toLocaleString()}</p>
-                    <p className="text-xs text-slate-500">Comments</p>
-                  </div>
-                )}
-              </div>
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

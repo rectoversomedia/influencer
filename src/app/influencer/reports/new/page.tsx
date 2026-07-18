@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import NewReportForm from '@/components/reports/report-form';
 import Link from 'next/link';
-import { ArrowLeft } from '@phosphor-icons/react';
+import { ArrowLeft } from '@/app/icons';
 
 export default async function NewReportPage({
   searchParams,
