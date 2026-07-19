@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-// Create admin client for public submissions
 const supabaseAdmin = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -20,29 +19,31 @@ export async function POST(request: Request) {
     } = body;
 
     // Validate required fields
-    if (!influencer_name || !influencer_email || !campaign_code) {
+    if (!influencer_name || !influencer_email) {
       return NextResponse.json(
-        { error: 'Nama, email, dan campaign harus diisi' },
+        { error: 'Nama dan email harus diisi' },
         { status: 400 }
       );
     }
 
-    // Find campaign by code
-    const { data: campaign, error: campaignError } = await supabaseAdmin
+    // Find campaign by name
+    let campaignId = null;
+    let campaignName = campaign_code;
+    
+    const { data: campaign } = await supabaseAdmin
       .from('campaigns')
-      .select('*')
-      .eq('name', campaign_code)
+      .select('id, name')
+      .ilike('name', campaign_code)
       .single();
 
-    if (campaignError || !campaign) {
-      // If campaign not found, create a placeholder or use default
-      console.log('Campaign not found, will store without campaign_id');
+    if (campaign) {
+      campaignId = campaign.id;
+      campaignName = campaign.name;
     }
 
     // Get or create influencer profile
     let influencerId = null;
     
-    // Check if email exists
     const { data: existingProfile } = await supabaseAdmin
       .from('profiles')
       .select('id')
@@ -51,21 +52,28 @@ export async function POST(request: Request) {
 
     if (existingProfile) {
       influencerId = existingProfile.id;
+      
+      // Update profile with latest info
+      await supabaseAdmin
+        .from('profiles')
+        .update({ 
+          full_name: influencer_name,
+          phone: influencer_phone 
+        })
+        .eq('id', influencerId);
     } else {
-      // Create new influencer profile (no auth user needed for public form)
-      const newId = crypto.randomUUID();
+      // Create new influencer profile
+      influencerId = crypto.randomUUID();
       
       await supabaseAdmin
         .from('profiles')
         .insert({
-          id: newId,
+          id: influencerId,
           email: influencer_email,
           full_name: influencer_name,
           phone: influencer_phone,
           role: 'influencer'
         });
-      
-      influencerId = newId;
     }
 
     // Calculate totals from posts
@@ -83,8 +91,12 @@ export async function POST(request: Request) {
     const { data: report, error: reportError } = await supabaseAdmin
       .from('reports')
       .insert({
-        campaign_id: campaign?.id || null,
+        campaign_id: campaignId,
+        campaign_name: campaignName,
         influencer_id: influencerId,
+        influencer_name: influencer_name,
+        influencer_email: influencer_email,
+        influencer_phone: influencer_phone,
         status: 'submitted',
         submitted_at: new Date().toISOString(),
         total_impressions: totals.impressions || 0,
@@ -100,16 +112,19 @@ export async function POST(request: Request) {
 
     if (reportError) {
       console.error('Report error:', reportError);
+      return NextResponse.json(
+        { error: 'Gagal menyimpan report' },
+        { status: 500 }
+      );
     }
 
-    // Store posts data (without file upload for now - we'll add that later)
+    // Store posts
     if (posts && posts.length > 0 && report) {
       const postsData = posts.map((post: any, index: number) => ({
         report_id: report.id,
         post_number: index + 1,
         platform: post.platform || 'instagram',
         post_url: post.url || '',
-        caption: post.caption || '',
         impressions: parseInt(post.metrics?.impressions) || 0,
         reach: parseInt(post.metrics?.reach) || 0,
         views: parseInt(post.metrics?.views) || 0,
@@ -125,7 +140,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       message: 'Report submitted successfully',
-      report_id: report?.id
+      report_id: report.id
     });
 
   } catch (error) {

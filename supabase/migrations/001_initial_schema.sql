@@ -1,5 +1,8 @@
--- Influencer Report Management System - Database Schema
+-- =============================================
+-- RECTOVERSO INFLUENCER REPORT SYSTEM
+-- Database Schema
 -- Run this in Supabase SQL Editor
+-- =============================================
 
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -7,35 +10,27 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- Create enum types
 DO $$ BEGIN
     CREATE TYPE user_role AS ENUM ('superadmin', 'client', 'influencer');
-EXCEPTION
-    WHEN duplicate_object THEN null;
+EXCEPTION WHEN duplicate_object THEN null;
 END $$;
 
 DO $$ BEGIN
     CREATE TYPE campaign_status AS ENUM ('draft', 'active', 'completed', 'archived');
-EXCEPTION
-    WHEN duplicate_object THEN null;
+EXCEPTION WHEN duplicate_object THEN null;
 END $$;
 
 DO $$ BEGIN
     CREATE TYPE report_status AS ENUM ('draft', 'submitted', 'under_review', 'approved', 'revision_requested');
-EXCEPTION
-    WHEN duplicate_object THEN null;
-END $$;
-
-DO $$ BEGIN
-    CREATE TYPE invite_status AS ENUM ('pending', 'accepted', 'declined');
-EXCEPTION
-    WHEN duplicate_object THEN null;
+EXCEPTION WHEN duplicate_object THEN null;
 END $$;
 
 DO $$ BEGIN
     CREATE TYPE social_platform AS ENUM ('instagram', 'tiktok', 'youtube', 'twitter', 'facebook', 'linkedin', 'threads');
-EXCEPTION
-    WHEN duplicate_object THEN null;
+EXCEPTION WHEN duplicate_object THEN null;
 END $$;
 
--- Profiles table (extends auth.users)
+-- =============================================
+-- PROFILES TABLE
+-- =============================================
 CREATE TABLE IF NOT EXISTS profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT UNIQUE NOT NULL,
@@ -47,7 +42,9 @@ CREATE TABLE IF NOT EXISTS profiles (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Campaigns table
+-- =============================================
+-- CAMPAIGNS TABLE
+-- =============================================
 CREATE TABLE IF NOT EXISTS campaigns (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL,
@@ -59,43 +56,25 @@ CREATE TABLE IF NOT EXISTS campaigns (
     required_metrics TEXT[] DEFAULT ARRAY['impressions', 'reach', 'views', 'likes', 'comments'],
     min_posts_required INTEGER DEFAULT 1,
     budget DECIMAL(15,2),
-    created_by UUID NOT NULL REFERENCES profiles(id),
+    created_by UUID REFERENCES profiles(id),
     client_id UUID REFERENCES profiles(id),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Campaign invites table
-CREATE TABLE IF NOT EXISTS campaign_invites (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    campaign_id UUID NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
-    influencer_id UUID REFERENCES profiles(id),
-    invite_email TEXT,
-    invite_token TEXT UNIQUE NOT NULL DEFAULT uuid_generate_v4()::text,
-    status invite_status NOT NULL DEFAULT 'pending',
-    expires_at TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '7 days'),
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Influencer profiles table (additional info for influencers)
-CREATE TABLE IF NOT EXISTS influencer_profiles (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    user_id UUID NOT NULL UNIQUE REFERENCES profiles(id) ON DELETE CASCADE,
-    platforms JSONB DEFAULT '[]'::jsonb,
-    niche TEXT,
-    average_engagement_rate DECIMAL(5,2),
-    is_available BOOLEAN DEFAULT true,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
--- Reports table
+-- =============================================
+-- REPORTS TABLE
+-- =============================================
 CREATE TABLE IF NOT EXISTS reports (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    campaign_id UUID NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
-    influencer_id UUID NOT NULL REFERENCES profiles(id),
-    status report_status NOT NULL DEFAULT 'draft',
-    submitted_at TIMESTAMPTZ,
+    campaign_id UUID REFERENCES campaigns(id) ON DELETE SET NULL,
+    campaign_name TEXT,
+    influencer_id UUID REFERENCES profiles(id) ON DELETE CASCADE,
+    influencer_name TEXT,
+    influencer_email TEXT,
+    influencer_phone TEXT,
+    status report_status NOT NULL DEFAULT 'submitted',
+    submitted_at TIMESTAMPTZ DEFAULT NOW(),
     reviewed_by UUID REFERENCES profiles(id),
     reviewed_at TIMESTAMPTZ,
     feedback TEXT,
@@ -111,7 +90,9 @@ CREATE TABLE IF NOT EXISTS reports (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Report posts table
+-- =============================================
+-- REPORT POSTS TABLE
+-- =============================================
 CREATE TABLE IF NOT EXISTS report_posts (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     report_id UUID NOT NULL REFERENCES reports(id) ON DELETE CASCADE,
@@ -134,22 +115,22 @@ CREATE TABLE IF NOT EXISTS report_posts (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- Indexes for better performance
+-- =============================================
+-- INDEXES
+-- =============================================
 CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role);
 CREATE INDEX IF NOT EXISTS idx_profiles_email ON profiles(email);
 CREATE INDEX IF NOT EXISTS idx_campaigns_status ON campaigns(status);
-CREATE INDEX IF NOT EXISTS idx_campaigns_client ON campaigns(client_id);
-CREATE INDEX IF NOT EXISTS idx_campaigns_creator ON campaigns(created_by);
 CREATE INDEX IF NOT EXISTS idx_reports_campaign ON reports(campaign_id);
 CREATE INDEX IF NOT EXISTS idx_reports_influencer ON reports(influencer_id);
 CREATE INDEX IF NOT EXISTS idx_reports_status ON reports(status);
 CREATE INDEX IF NOT EXISTS idx_report_posts_report ON report_posts(report_id);
-CREATE INDEX IF NOT EXISTS idx_invites_token ON campaign_invites(invite_token);
-CREATE INDEX IF NOT EXISTS idx_invites_campaign ON campaign_invites(campaign_id);
 
--- Functions
+-- =============================================
+-- FUNCTIONS & TRIGGERS
+-- =============================================
 
--- Function to update updated_at timestamp
+-- Update timestamp function
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -158,284 +139,113 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Triggers for updated_at
-CREATE OR REPLACE TRIGGER update_profiles_updated_at
-    BEFORE UPDATE ON profiles
+-- Apply triggers
+DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
+CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE OR REPLACE TRIGGER update_campaigns_updated_at
-    BEFORE UPDATE ON campaigns
+DROP TRIGGER IF EXISTS update_campaigns_updated_at ON campaigns;
+CREATE TRIGGER update_campaigns_updated_at BEFORE UPDATE ON campaigns
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE OR REPLACE TRIGGER update_reports_updated_at
-    BEFORE UPDATE ON reports
+DROP TRIGGER IF EXISTS update_reports_updated_at ON reports;
+CREATE TRIGGER update_reports_updated_at BEFORE UPDATE ON reports
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
-CREATE OR REPLACE TRIGGER update_influencer_profiles_updated_at
-    BEFORE UPDATE ON influencer_profiles
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
--- Function to handle new user signup
-CREATE OR REPLACE FUNCTION public.handle_new_user()
+-- Auto-create profile on user signup
+CREATE OR REPLACE FUNCTION handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
     INSERT INTO public.profiles (id, email, full_name, role)
     VALUES (
         NEW.id,
         NEW.email,
-        COALESCE(NEW.raw_user_meta_data->>'full_name', NEW.email),
+        COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)),
         COALESCE((NEW.raw_user_meta_data->>'role')::user_role, 'influencer')
     );
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Trigger for new user signup
 DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
-    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+    FOR EACH ROW EXECUTE FUNCTION handle_new_user();
 
--- Row Level Security Policies
-
--- Enable RLS on all tables
+-- =============================================
+-- ROW LEVEL SECURITY
+-- =============================================
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY;
-ALTER TABLE campaign_invites ENABLE ROW LEVEL SECURITY;
-ALTER TABLE influencer_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE report_posts ENABLE ROW LEVEL SECURITY;
 
 -- Profiles policies
-CREATE POLICY "Public profiles are viewable by everyone"
-    ON profiles FOR SELECT
-    USING (true);
+DROP POLICY IF EXISTS "Profiles viewable by all" ON profiles;
+CREATE POLICY "Profiles viewable by all" ON profiles FOR SELECT USING (true);
 
-CREATE POLICY "Users can update their own profile"
-    ON profiles FOR UPDATE
-    USING (auth.uid() = id);
-
-CREATE POLICY "Superadmins can update any profile"
-    ON profiles FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM profiles
-            WHERE id = auth.uid() AND role = 'superadmin'
-        )
-    );
-
--- Campaigns policies
-CREATE POLICY "Superadmins can view all campaigns"
-    ON campaigns FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM profiles
-            WHERE id = auth.uid() AND role = 'superadmin'
-        )
-    );
-
-CREATE POLICY "Clients can view their own campaigns"
-    ON campaigns FOR SELECT
-    USING (client_id = auth.uid());
-
-CREATE POLICY "Influencers can view campaigns they're invited to"
-    ON campaigns FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM campaign_invites
-            WHERE campaign_id = campaigns.id
-            AND influencer_id = auth.uid()
-            AND status = 'accepted'
-        )
-    );
-
-CREATE POLICY "Superadmins can create campaigns"
-    ON campaigns FOR INSERT
-    WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM profiles
-            WHERE id = auth.uid() AND role = 'superadmin'
-        )
-    );
-
-CREATE POLICY "Superadmins can update campaigns"
-    ON campaigns FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM profiles
-            WHERE id = auth.uid() AND role = 'superadmin'
-        )
-    );
-
-CREATE POLICY "Superadmins can delete campaigns"
-    ON campaigns FOR DELETE
-    USING (
-        EXISTS (
-            SELECT 1 FROM profiles
-            WHERE id = auth.uid() AND role = 'superadmin'
-        )
-    );
+DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
+CREATE POLICY "Users can update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
 
 -- Reports policies
-CREATE POLICY "Superadmins can view all reports"
-    ON reports FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM profiles
-            WHERE id = auth.uid() AND role = 'superadmin'
-        )
-    );
+DROP POLICY IF EXISTS "Reports viewable by all" ON reports;
+CREATE POLICY "Reports viewable by all" ON reports FOR SELECT USING (true);
 
-CREATE POLICY "Clients can view reports for their campaigns"
-    ON reports FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM campaigns
-            WHERE id = reports.campaign_id AND client_id = auth.uid()
-        )
-    );
+DROP POLICY IF EXISTS "Anyone can insert reports" ON reports;
+CREATE POLICY "Anyone can insert reports" ON reports FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "Influencers can view their own reports"
-    ON reports FOR SELECT
-    USING (influencer_id = auth.uid());
-
-CREATE POLICY "Influencers can create reports"
-    ON reports FOR INSERT
-    WITH CHECK (influencer_id = auth.uid());
-
-CREATE POLICY "Influencers can update their own draft reports"
-    ON reports FOR UPDATE
-    USING (
-        influencer_id = auth.uid()
-        AND status = 'draft'
-    );
-
-CREATE POLICY "Clients can update report status (approve/reject)"
-    ON reports FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM campaigns
-            WHERE id = reports.campaign_id AND client_id = auth.uid()
-        )
-    );
+DROP POLICY IF EXISTS "Reports updatable by reviewers" ON reports;
+CREATE POLICY "Reports updatable by reviewers" ON reports FOR UPDATE USING (true);
 
 -- Report posts policies
-CREATE POLICY "Users can view report posts"
-    ON report_posts FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM reports
-            WHERE id = report_posts.report_id
-            AND (
-                influencer_id = auth.uid()
-                OR EXISTS (SELECT 1 FROM campaigns WHERE id = reports.campaign_id AND client_id = auth.uid())
-                OR EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'superadmin')
-            )
-        )
-    );
+DROP POLICY IF EXISTS "Posts viewable by all" ON report_posts;
+CREATE POLICY "Posts viewable by all" ON report_posts FOR SELECT USING (true);
 
-CREATE POLICY "Influencers can create report posts"
-    ON report_posts FOR INSERT
-    WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM reports
-            WHERE id = report_posts.report_id AND influencer_id = auth.uid()
-        )
-    );
+DROP POLICY IF EXISTS "Posts insertable by all" ON report_posts;
+CREATE POLICY "Posts insertable by all" ON report_posts FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "Influencers can update their own report posts"
-    ON report_posts FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM reports
-            WHERE id = report_posts.report_id AND influencer_id = auth.uid()
-        )
-    );
+DROP POLICY IF EXISTS "Posts updatable by all" ON report_posts;
+CREATE POLICY "Posts updatable by all" ON report_posts FOR UPDATE USING (true);
 
--- Invites policies
-CREATE POLICY "Superadmins can manage invites"
-    ON campaign_invites FOR ALL
-    USING (
-        EXISTS (
-            SELECT 1 FROM campaigns
-            WHERE id = campaign_invites.campaign_id
-            AND created_by = auth.uid()
-        )
-        OR EXISTS (
-            SELECT 1 FROM profiles
-            WHERE id = auth.uid() AND role = 'superadmin'
-        )
-    );
+-- Campaigns policies
+DROP POLICY IF EXISTS "Campaigns viewable by all" ON campaigns;
+CREATE POLICY "Campaigns viewable by all" ON campaigns FOR SELECT USING (true);
 
-CREATE POLICY "Influencers can view their invites"
-    ON campaign_invites FOR SELECT
-    USING (influencer_id = auth.uid());
+DROP POLICY IF EXISTS "Campaigns insertable by all" ON campaigns;
+CREATE POLICY "Campaigns insertable by all" ON campaigns FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "Anyone can view invites by token (for accepting)"
-    ON campaign_invites FOR SELECT
-    USING (true);
+DROP POLICY IF EXISTS "Campaigns updatable by all" ON campaigns;
+CREATE POLICY "Campaigns updatable by all" ON campaigns FOR UPDATE USING (true);
 
-CREATE POLICY "Influencers can update their invites (accept/decline)"
-    ON campaign_invites FOR UPDATE
-    USING (influencer_id = auth.uid());
-
--- Influencer profiles policies
-CREATE POLICY "Everyone can view influencer profiles"
-    ON influencer_profiles FOR SELECT
-    USING (true);
-
-CREATE POLICY "Influencers can update their own profile"
-    ON influencer_profiles FOR ALL
-    USING (user_id = auth.uid());
-
--- Storage bucket for screenshots
+-- =============================================
+-- STORAGE BUCKET
+-- =============================================
 INSERT INTO storage.buckets (id, name, public)
 VALUES ('screenshots', 'screenshots', true)
 ON CONFLICT (id) DO NOTHING;
 
--- Storage policies
-CREATE POLICY "Anyone can upload screenshots"
-    ON storage.objects FOR INSERT
-    WITH CHECK (bucket_id = 'screenshots');
+DROP POLICY IF EXISTS "Screenshots viewable by all" ON storage.objects;
+CREATE POLICY "Screenshots viewable by all" ON storage.objects
+    FOR SELECT USING (bucket_id = 'screenshots');
 
-CREATE POLICY "Anyone can view screenshots"
-    ON storage.objects FOR SELECT
-    USING (bucket_id = 'screenshots');
+DROP POLICY IF EXISTS "Screenshots uploadable by all" ON storage.objects;
+CREATE POLICY "Screenshots uploadable by all" ON storage.objects
+    FOR INSERT WITH CHECK (bucket_id = 'screenshots');
 
-CREATE POLICY "Users can delete their own screenshots"
-    ON storage.objects FOR DELETE
-    USING (bucket_id = 'screenshots' AND auth.uid()::text = (storage.foldername(name))[1]);
+DROP POLICY IF EXISTS "Screenshots deletable by all" ON storage.objects;
+CREATE POLICY "Screenshots deletable by all" ON storage.objects
+    FOR DELETE USING (bucket_id = 'screenshots');
 
--- Helper view for campaign analytics
-CREATE OR REPLACE VIEW campaign_analytics AS
-SELECT
-    c.id as campaign_id,
-    c.name as campaign_name,
-    c.status,
-    COUNT(DISTINCT r.id) as total_reports,
-    COUNT(DISTINCT CASE WHEN r.status = 'approved' THEN r.id END) as approved_reports,
-    COUNT(DISTINCT CASE WHEN r.status IN ('submitted', 'under_review') THEN r.id END) as pending_reports,
-    COALESCE(SUM(r.total_impressions), 0) as total_impressions,
-    COALESCE(SUM(r.total_reach), 0) as total_reach,
-    COALESCE(SUM(r.total_views), 0) as total_views,
-    COALESCE(SUM(r.total_likes + r.total_comments + r.total_shares + r.total_saves), 0) as total_engagement
-FROM campaigns c
-LEFT JOIN reports r ON c.id = r.campaign_id
-GROUP BY c.id, c.name, c.status;
+-- =============================================
+-- SEED DATA - Demo Campaigns
+-- =============================================
+INSERT INTO campaigns (id, name, brand_name, start_date, end_date, status, required_metrics, min_posts_required, description)
+VALUES
+    ('11111111-1111-1111-1111-111111111111', 'FIFGO Download & Rating', 'FIFGO', '2024-01-01', '2026-12-31', 'active', ARRAY['impressions', 'reach', 'views', 'likes', 'comments', 'shares', 'saves'], 1, 'Campaign untuk download dan rating aplikasi FIFGO'),
+    ('22222222-2222-2222-2222-222222222222', 'Summer Campaign 2024', 'Various', '2024-06-01', '2024-08-31', 'active', ARRAY['impressions', 'reach', 'views', 'likes', 'comments'], 2, 'Campaign summer untuk berbagai brand'),
+    ('33333333-3333-3333-3333-333333333333', 'Tech Product Launch', 'TechBrand', '2024-07-01', '2024-09-30', 'active', ARRAY['impressions', 'reach', 'views', 'likes', 'comments', 'shares'], 3, 'Product launch untuk produk teknologi baru')
+ON CONFLICT (id) DO NOTHING;
 
--- Helper view for influencer leaderboard
-CREATE OR REPLACE VIEW influencer_leaderboard AS
-SELECT
-    p.id as influencer_id,
-    p.full_name,
-    p.avatar_url,
-    COUNT(DISTINCT r.id) as report_count,
-    COALESCE(SUM(r.total_impressions), 0) as total_impressions,
-    COALESCE(SUM(r.total_reach), 0) as total_reach,
-    COALESCE(SUM(r.total_views), 0) as total_views,
-    COALESCE(SUM(r.total_likes + r.total_comments + r.total_shares + r.total_saves), 0) as total_engagement
-FROM profiles p
-LEFT JOIN reports r ON p.id = r.influencer_id
-WHERE p.role = 'influencer'
-GROUP BY p.id, p.full_name, p.avatar_url
-ORDER BY total_impressions DESC;
+-- =============================================
+-- COMPLETED!
+-- =============================================
