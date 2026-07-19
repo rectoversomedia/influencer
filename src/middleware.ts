@@ -32,12 +32,11 @@ export async function middleware(request: NextRequest) {
 
   // Protected routes based on role
   const isAuthRoute = request.nextUrl.pathname.startsWith('/auth');
-  const isPublicRoute = request.nextUrl.pathname === '/';
+  const isPublicRoute = request.nextUrl.pathname === '/' || request.nextUrl.pathname.startsWith('/influencer');
   const isSuperadminRoute = request.nextUrl.pathname.startsWith('/superadmin');
   const isClientRoute = request.nextUrl.pathname.startsWith('/client');
-  const isInfluencerRoute = request.nextUrl.pathname.startsWith('/influencer');
 
-  // If not authenticated and trying to access protected route
+  // If not authenticated and trying to access protected route (not public)
   if (!user && !isAuthRoute && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = '/auth/login';
@@ -85,12 +84,6 @@ export async function middleware(request: NextRequest) {
     // Client routes
     if (isClientRoute && role !== 'client') {
       url.pathname = role === 'superadmin' ? '/superadmin' : '/influencer';
-      return NextResponse.redirect(url);
-    }
-
-    // Influencer routes
-    if (isInfluencerRoute && role !== 'influencer') {
-      url.pathname = role === 'superadmin' ? '/superadmin' : '/client';
       return NextResponse.redirect(url);
     }
 
